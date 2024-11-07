@@ -7,11 +7,15 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.12"
+pygame = "^2.6.1"
 
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.3"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-coucou="snake.code2:coucou"
+snake="snake.codesession2:snake"
