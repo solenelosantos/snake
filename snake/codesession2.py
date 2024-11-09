@@ -2,7 +2,8 @@ import pygame
 
 DEFAULT_WIDTH= 400
 DEFAULT_HEIGHT= 300
-DEFAULT_PIXEL= 10
+DEFAULT_PIXEL= 25
+SNAKE_POSITION = [10,5]
 
 def snake():
     args=lignecommande()
@@ -13,7 +14,7 @@ def snake():
     clock = pygame.time.Clock()
 
     Flag=True
-    print ('test')
+
     while Flag:
 
         clock.tick(1)
@@ -27,8 +28,11 @@ def snake():
     
 
         screen.fill( (255, 255, 255) )
-        damier(screen)
 
+        damier(screen,args)
+
+        starting_position(screen, SNAKE_POSITION, args)
+        
         pygame.display.update()
 
 import argparse
@@ -42,12 +46,30 @@ def lignecommande():
     return args
 
 # La fonction lignecommande permet de définir des lignes de commande. 
-# args est un attribut, on met un point. Args. contient width et height.
-#Maintenant, pour changer la taille de notre écran, on met poetry run snake -W 50 -H 50 => cela définit la taille et la largeur à 50 et 50.
+# args est un attribut=> Args. contient width et height.
+# P changer la taille de notre écran => poetry run snake -W 50 -H 50 => cela définit la taille et la largeur à 50 et 50.
 
-def damier(screen):
+
+def damier(screen, args):
+    w,h,p =args.width, args.height, args.pixel
     noir = (0, 0, 0) 
-    for i in range(0,400,10):
-        for j in range(0,300, 10):
-            rect = pygame.Rect(i, j, 10, 10)
+    a=0
+    for j in range(0, w, p*2):
+        for i in range(0, h, p):
+            rect = pygame.Rect(j+p*(a%2), i, p, p)
             pygame.draw.rect(screen, noir, rect)
+            a+=1
+
+# Nous utilisons des boucles for pour parcourir l'écran blanc et dessiner les carreaux un à un.
+# Pour introduire le décalage de carreaux, on utilise la variable a qui change de parité à chaque nouvelle ligne dessinée.
+        
+def starting_position(screen, position, args):
+    vert=(0,250,0)
+    p=args.pixel
+    ligne_t, colonne_t = position[0], position[1]
+    snake= pygame.Rect(colonne_t*p, ligne_t*p, 3*p, 1*p)
+    pygame.draw.rect(screen,vert, snake)
+
+# Nous définissons une fonction starting_position qui affiche le serpent vert en position initiale.
+# On multiplie les grandeurs par la taille des carreaux p. La fonction prend en argument STARTING_POSITION qui est une variable globale définie en début de code.
+# Ici STARTING_POSITION=[10,5] => 11ème ligne et 6ème colonne.
