@@ -47,7 +47,7 @@ def lignecommande():
 
 # La fonction lignecommande permet de définir des lignes de commande. 
 # args est un attribut=> Args. contient width et height.
-# P changer la taille de notre écran => poetry run snake -W 50 -H 50 => cela définit la taille et la largeur à 50 et 50.
+# Pour changer la taille de notre écran => poetry run snake -W 50 -H 50 => cela définit la taille et la largeur à 50 et 50.
 
 
 def damier(screen, args):
