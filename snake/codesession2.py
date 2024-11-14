@@ -27,11 +27,10 @@ def snake():
                     Flag= False
     
 
-        screen.fill( (255, 255, 255) )
+        checkerboard= Checkerboard((0,0,0), args.height, args.width, args.pixel)
+        checkerboard.draw(screen)
 
-        damier(screen,args)
-
-        starting_position(screen, SNAKE_POSITION, args)
+        #starting_position(screen, SNAKE_POSITION, args)
         
         pygame.display.update()
 
@@ -73,3 +72,42 @@ def starting_position(screen, position, args):
 # Nous définissons une fonction starting_position qui affiche le serpent vert en position initiale.
 # On multiplie les grandeurs par la taille des carreaux p. La fonction prend en argument STARTING_POSITION qui est une variable globale définie en début de code.
 # Ici STARTING_POSITION=[10,5] => 11ème ligne et 6ème colonne.
+
+class Tile:
+    def __init__(self, width, height, pixel,color):
+        self._width=width
+        self._height=height
+        self._pixel =pixel
+        self._color=color
+
+    def draw(self, screen, rect):
+        pygame.draw.rect(screen, self._color, rect)
+      
+# Vaut mieux passer le screen dans la fonction draw
+
+class Checkerboard:
+    def __init__(self, color, height, width, pixel):
+        self._color= color
+        self._height= height
+        self._width= width
+        self._pixel =pixel
+    
+    def draw(self, screen):
+        screen.fill( (255, 255, 255) )
+        a=0
+        for j in range(0, self._width, self._pixel*2):
+            for i in range(0, self._height, self._pixel):
+                rect = pygame.Rect(j+self._pixel*(a%2), i, self._pixel, self._pixel)
+                tile=Tile(self._width, self._height, self._pixel, self._color)
+                Tile.draw(screen,rect)
+                a+=1
+'''
+#class Snake:
+    def __init__(self, color, snake_position):
+        self._color= color
+        self._tete_colonne, self._tete_ligne= snake_position
+
+    def draw(self, pixel):
+        rect = pygame.Rect(self._tete_colonne*pixel, self._tete_ligne*pixel, 3*pixel, 1*pixel)
+        tile= Tile()
+'''
