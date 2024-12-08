@@ -2,7 +2,7 @@ import pygame
 
 DEFAULT_WIDTH= 400
 DEFAULT_HEIGHT= 300
-DEFAULT_PIXEL= 25
+DEFAULT_PIXEL= 22
 SNAKE_POSITION = [10,5]
 
 def snake():
@@ -12,15 +12,19 @@ def snake():
     screen = pygame.display.set_mode( (args.width, args.height) )
 
     clock = pygame.time.Clock()
-
-    
+   
+    score=0
+    pygame.display.set_caption(f"Snake Game - Score: {score}")
     snake =Snake(args)
+    fruit=Fruit(args)
+
+
 
     Flag=True
 
     while Flag:
 
-        clock.tick(1)
+        clock.tick(3)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -40,17 +44,20 @@ def snake():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     snake.change_direction('LEFT')
-                    
+
         screen.fill( (255, 255, 255) )
         checkerboard= Checkerboard(args.width, args.height, args.pixel)
         checkerboard.draw(screen)
+        fruit.draw(screen)
         snake.move(screen)
         snake.draw(screen)
 
-
-
-        #starting_position(screen, SNAKE_POSITION, args)
-        
+        if snake._position[0] == fruit._position:
+            snake._position.append(snake._position[-1]) #le serpent grandit
+            score += 1
+            pygame.display.set_caption(f"Snake Game - Score: {score}")
+            fruit.relocate()
+    
         pygame.display.update()
 
 import argparse
@@ -151,4 +158,23 @@ class Snake():
 
     def change_direction(self, new_direction):
         self._direction= new_direction
+
+class Fruit:
+
+    def __init__(self,args):
+        self._color= (255,0,0)
+        self._pixel= args.pixel
+        self._position = (3,3)
+    
+    def draw(self,screen):
+        x,y= self._position
+        rect=pygame.Rect(x*self._pixel,y*self._pixel,self._pixel,self._pixel)
+        tile=Tile(self._pixel,self._color)
+        tile.draw(screen, rect)
+    
+    def relocate(self):
+        if self._position == (3,3):
+            self._position= (13,10)
+        elif self._position == (13,10):
+            self._position= (3,3)
 
