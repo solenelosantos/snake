@@ -1,4 +1,5 @@
 import pygame
+import abc
 
 DEFAULT_WIDTH= 400
 DEFAULT_HEIGHT= 300
@@ -15,9 +16,13 @@ def snake():
    
     score=0
     pygame.display.set_caption(f"Snake Game - Score: {score}")
-    snake =Snake(args)
-    fruit=Fruit(args)
 
+    screen.fill( (255, 255, 255) )
+    board= Board(screen= screen, tile_size= DEFAULT_PIXEL)
+    checkerboard= Checkerboard(args.width, args.height, args.pixel)
+    snake =Snake()
+    fruit=Fruit()
+    board.add_object(checkerboard, snake, fruit)
 
 
     Flag=True
@@ -45,12 +50,11 @@ def snake():
                 if event.key == pygame.K_LEFT:
                     snake.change_direction('LEFT')
 
-        screen.fill( (255, 255, 255) )
-        checkerboard= Checkerboard(args.width, args.height, args.pixel)
-        checkerboard.draw(screen)
-        fruit.draw(screen)
+        
+        
         snake.move(screen)
-        snake.draw(screen)
+    
+        board.draw
 
         if snake._position[0] == fruit._position:
             snake._position.append(snake._position[-1]) #le serpent grandit
@@ -102,37 +106,34 @@ def starting_position(screen, position, args):
 
 class Tile:
      
-    def __init__(self,pixel, color):
-        self._pixel= pixel
-        self._color= color
+    def __init__(self,row, column):
+        self._row= row
+        self._column=column
+        
     
-    def draw(self,screen, rect):
+    def draw(self,screen, tile_size):
+        rect=pygame.Rect(self._column*tile_size, self._row*tile_size, tile_size, tile_size)
         pygame.draw.rect(screen, self._color, rect)
 
 
-class Checkerboard():
-    def __init__(self, width, height, pixel):
+class Checkerboard(GameObject):
+    def __init__(self, width, height):
         self._width= width
         self._height= height
-        self._pixel= pixel
-        self._noir= (0,0,0)
+        self._color1= (0,0,0)
+        self._color2=(255,255,255)
     
-    def draw(self,screen):
-        w,h,p =self._width, self._height, self._pixel 
-        a=0
-        for j in range(0, w, p*2):
-            for i in range(0, h, p):
-                rect = pygame.Rect(j+p*(a%2), i, p, p)
-                tile=Tile(p,self._noir)
-                tile.draw(screen, rect)
-                a+=1
+    @property
+    def tiles(self):
+        for row in range(self._height):
+            for column in range (self._width):
+                yield tile=Tile(row= row, column= column, color=self._color1 if (row+column)%2==0 else self._color2)
 
-class Snake():
-    def __init__(self,args):
+class Snake(GameObject):
+    def __init__(self):
         self._color=(0,255,0)
         self._position= [(10,5), (11,5), (12,5)]
         self._direction = "LEFT"
-        self._pixel= args.pixel
 
     def move(self,screen):
         
@@ -149,28 +150,21 @@ class Snake():
         self._position= [new_head] + self._position
         self._position.pop()
 
-    def draw(self,screen):
-
-        for x,y in self._position :
-            rect= pygame.Rect(x*self._pixel,y*self._pixel,self._pixel,self._pixel)
-            tile=Tile(self._pixel,self._color)
-            tile.draw(screen, rect)
-
     def change_direction(self, new_direction):
         self._direction= new_direction
 
-class Fruit:
+    @property
+    def tiles(self):
+        iter(self._position)
 
-    def __init__(self,args):
-        self._color= (255,0,0)
-        self._pixel= args.pixel
-        self._position = (3,3)
+class Fruit(GameObject):
+
+    def __init__(self,position, color):
+        self._tiles = [Tile(row=position[0], column= position[1], color= color)]
     
-    def draw(self,screen):
-        x,y= self._position
-        rect=pygame.Rect(x*self._pixel,y*self._pixel,self._pixel,self._pixel)
-        tile=Tile(self._pixel,self._color)
-        tile.draw(screen, rect)
+    @property
+    def tiles(self):
+        iter(self._tiles)
     
     def relocate(self):
         if self._position == (3,3):
@@ -178,3 +172,27 @@ class Fruit:
         elif self._position == (13,10):
             self._position= (3,3)
 
+
+class Board :
+    def __init__(self, screen, tile_size):
+        self._screen= screen
+        self._tile_size= tile_size
+        self._objects=[]
+
+    def draw(self):
+        for obj in self._objects:
+            for tile in obj.tiles:
+                tile.draw(self._screen, self._tile_size )
+
+    def add_object(self,gameobject):
+        self._objects.append(gameobject)
+
+
+class GameObject(abc.ABC):
+    def __init__(self):
+        super().__init__()
+        
+    @property
+    @abc.abstractmethod
+    def tiles(self):
+        raise NotImplementedError
