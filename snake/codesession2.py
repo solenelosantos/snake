@@ -6,7 +6,6 @@ DEFAULT_WIDTH= 400
 DEFAULT_HEIGHT= 300
 DEFAULT_PIXEL= 22
 SNAKE_POSITION = [10,5]
-DEFAULT_DIRECTION=Dir.RIGHT
 
 def snake() -> None:
     args=lignecommande()
@@ -23,7 +22,7 @@ def snake() -> None:
     board= Board(screen= screen, tile_size= DEFAULT_PIXEL)
     checkerboard= Checkerboard(args.width, args.height)
     snake =Snake()
-    fruit=Fruit()
+    fruit=Fruit(position=(3,3), color=(0,255,0))
     board.add_object(checkerboard, snake, fruit)
 
 
@@ -94,7 +93,7 @@ def damier(screen, args) -> None:
 # Nous utilisons des boucles for pour parcourir l'écran blanc et dessiner les carreaux un à un.
 # Pour introduire le décalage de carreaux, on utilise la variable a qui change de parité à chaque nouvelle ligne dessinée.
         
-def starting_position(screen, position, args) -> None:
+def starting_position(screen, position, args) -> None:  
     vert=(0,250,0)
     p=args.pixel
     ligne_t, colonne_t = position[0], position[1]
@@ -130,19 +129,23 @@ class GameObject(abc.ABC):
         raise NotImplementedError
 
 class Tile:
-    def __init__(self,row, column) -> None:
+    def __init__(self,row, column,color) -> None:
         self._row= row
         self._column=column
+        self._color=color
 
     def draw(self,screen, tile_size) -> None:
         rect=pygame.Rect(self._column*tile_size, self._row*tile_size, tile_size, tile_size)
         pygame.draw.rect(screen, self._color, rect)
 
     def __add__(self, other):
-        
+        if not ininstance(other,Dir):
+            raise ValueError('Type is wrong')
+        return Tile (self._row + other.value[1], self._column +other.value[0], sel._color)
 
 class Checkerboard(GameObject):
     def __init__(self, width, height) -> None:
+        super().__init__()
         self._width= width
         self._height= height
         self._color1= (0,0,0)
@@ -156,9 +159,10 @@ class Checkerboard(GameObject):
 
 class Snake(GameObject):
     def __init__(self) -> None:
+        super().__init__()
         self._color=(0,255,0)
         self._position= [(10,5), (11,5), (12,5)]
-        self._direction = "LEFT"
+        self._direction = Dir.RIGHT
 
     def move(self,screen) -> None:
 
@@ -171,7 +175,7 @@ class Snake(GameObject):
         return self._direction
 
     @dir.setter
-    def dir(self, new_direction):
+    def dir(self, new_direction) -> None:
         self._direction = new_direction
 
     @property
@@ -181,6 +185,7 @@ class Snake(GameObject):
 class Fruit(GameObject):
 
     def __init__(self,position, color) -> None:
+        super().__init__()
         self._tiles = [Tile(row=position[0], column= position[1], color= color)]
     
     @property
@@ -193,10 +198,9 @@ class Fruit(GameObject):
         elif self._position == (13,10):
             self._position= (3,3)
 
-class Dir (enum.Enum):
-    def __init__(self) -> None:
-        UP=(0,-1)
-        DOWN=(0,1)
-        RIGHT=(1,0)
-        LEFT=(-1,0)
+class Dir(enum.Enum):
+    UP=(0,-1)
+    DOWN=(0,1)
+    RIGHT=(1,0)
+    LEFT=(-1,0)
 
