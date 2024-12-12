@@ -23,8 +23,9 @@ def snake() -> None:
     checkerboard= Checkerboard(args.width, args.height)
     snake =Snake()
     fruit=Fruit(position=(3,3), color=(0,255,0))
-    board.add_object(checkerboard, snake, fruit)
-
+    board.add_object(checkerboard)
+    board.add_object(snake)
+    board.add_object(fruit)
 
     Flag=True
 
@@ -52,8 +53,7 @@ def snake() -> None:
                     snake.dir= Dir.LEFT
 
         
-        
-        snake.move(screen)
+        snake.move()
     
         board.draw
 
@@ -103,12 +103,44 @@ def starting_position(screen, position, args) -> None:
 # Nous définissons une fonction starting_position qui affiche le serpent vert en position initiale.
 # On multiplie les grandeurs par la taille des carreaux p. La fonction prend en argument STARTING_POSITION qui est une variable globale définie en début de code.
 # Ici STARTING_POSITION=[10,5] => 11ème ligne et 6ème colonne.
+class Observer(abc.ABC):
+    def __init__(self) -> None:
+        super().__init__()
 
-class Board :
-    def __init__(self, screen, tile_size) -> None:
+    def notify_object_eaten(self, obj: "GameObject") -> None:
+        pass
+# C'est le snake qui appelle cette méthode
+    def notify_object_moved(self, obj: "GameObject") -> None:
+        pass
+# C'est le Board qui appelle le fruit et le snake.
+    def notify_collision(self, obj: "GameObject" ) -> None:
+        pass
+
+class Subject(abc.ABC):
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._observers: list[Observer] = []
+
+    @property
+    def observers(self) -> list[Observer]:
+        return self._observers
+
+    def attach_obs(self, obs: Observer) -> None:
+        print(f"Attach {obs} as observer of {self}.")
+        self._observers.append(obs)
+
+    def detach_obs(self, obs: Observer) -> None:
+        print(f"Detach observer {obs} from {self}.")
+        self._observers.remove(obs)
+
+class Board (Subject, Observer) : # subject car le Board reçoit aussi des infos des objects. 
+    def __init__(self, screen, tile_size, nb_rows, nb_cols) -> None:
         self._screen= screen
         self._tile_size= tile_size
         self._objects=[]
+        self._nb_rows= nb_rows
+        self._nb_cols= nb_cols
 
     def draw(self) -> None:
         for obj in self._objects:
@@ -117,16 +149,50 @@ class Board :
 
     def add_object(self,gameobject):
         self._objects.append(gameobject)
+        gameobject.attach_obs(self) #permet au board de devenir l'observeur des objects ajoutés.
 
+    def remove_object(self, gameobject)
+        gameobject.detach_obs(self) # le board n'est plus l'observateur de l'object.
+        self._object.remove(gameobject)
 
-class GameObject(abc.ABC):
+    def create_fruit(self)-> Fruit:
+        fruit = None
+        while fruit is None or not self.detect_collision(fruit) is None:
+            fruit= Fruit (color= pygame.Color("red"), col= rd.randint(0, self._nb_cols=1), row= rd.randint(0, self._nb_cols=1))
+        
+    def detect_collision(self, obj: GameObject):
+        for o in self._objects:
+            if o != obj and not o.background and o in obj : #opérateur in définit par contains dans GameObject
+                return o
+        return None
+    
+    def notify_object_moved(self, obj: GameObject)-> None:
+        o=self.detect_collision(obj)
+        if not o is None:
+                obj.notify_collision(o)
+
+    def notify_object_eaten(self, obj: GameObject)-> None:
+        self.remove_object(obj) # Remove the fruit eaten
+        self.create_fruit()
+
+class GameObject(Subject, Observer): #il vaut mieux mettre Subject en premier. Subject=class, Observeur= interface
     def __init__(self) -> None:
         super().__init__()
-        
+
     @property
     @abc.abstractmethod
     def tiles(self) -> NoReturn:
         raise NotImplementedError
+    
+    @property
+    def background(self):
+        return False #by default, a gameobject is not a background
+
+    def __contains__(self, obj :Object)-> bool:
+        if isinstance(obj, GameObject):
+            return any(t in obj.tiles for t in self.tiles)
+        return False
+
 
 class Tile:
     def __init__(self,row, column,color) -> None:
@@ -139,9 +205,9 @@ class Tile:
         pygame.draw.rect(screen, self._color, rect)
 
     def __add__(self, other):
-        if not ininstance(other,Dir):
+        if not isinstance(other,Dir):
             raise ValueError('Type is wrong')
-        return Tile (self._row + other.value[1], self._column +other.value[0], sel._color)
+        return Tile (self._row + other.value[1], self._column +other.value[0], self._color)
 
 class Checkerboard(GameObject):
     def __init__(self, width, height) -> None:
@@ -150,6 +216,10 @@ class Checkerboard(GameObject):
         self._height= height
         self._color1= (0,0,0)
         self._color2=(255,255,255)
+
+    @property
+    def background(self):
+        return True
     
     @property
     def tiles(self):
@@ -158,18 +228,33 @@ class Checkerboard(GameObject):
                 yield iter(Tile(row= row, column= column, color=self._color1 if (row+column)%2==0 else self._color2))
 
 class Snake(GameObject):
-    def __init__(self) -> None:
+    """Class used to represent the snake."""
+
+    def __init__(self, tiles, direction) -> None:
         super().__init__()
-        self._color=(0,255,0)
-        self._position= [(10,5), (11,5), (12,5)]
-        self._direction = Dir.RIGHT
+        self._direction = direction
+        self._tiles:list[Tile] =tiles
+    
 
-    def move(self,screen) -> None:
+    @classmethod
+    def create_from_pos(cls, color, row, column, direction, size):
+        tiles= [Tile(row,column+p, color) for p in range (size)]
+        return Snake (tiles, direction = direction)
+    
+    def __len__(self):
+        return len(self._tiles)
 
-        self._tiles.insert(0, self._tiles[0] +self._direction)
+    def move(self) -> None:
+        """Move the snake one tile."""
+        self._tiles.insert(0, self._tiles[0] + self._direction)
         self._tiles.pop()
-
-
+        """Notify observers"""
+        for obs in self.observers:
+            obs.notify_object_moved(self) # On previent tous les observeurs que le snake a bougé.
+        """shrink"""
+        if self._size < len(self._tiles):
+            self._tiles = self._tiles[:self._size]
+    
     @property
     def dir(self):
         return self._direction
@@ -181,6 +266,12 @@ class Snake(GameObject):
     @property
     def tiles(self) -> None: 
         iter(self._position)
+
+    def notify_collision (self, obj : GameObject)-> None:
+        if isinstance(obj, Fruit):
+            self._size+=1 #On fait en dur, on pourrait généraliser pour ajouter plus de fruits
+            for obs in self._observers:
+                obs.notify_object_eaten(obj)
 
 class Fruit(GameObject):
 
