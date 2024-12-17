@@ -1,6 +1,7 @@
 import pygame
 import abc
 import enum
+import random as rd
 
 DEFAULT_WIDTH= 400
 DEFAULT_HEIGHT= 300
@@ -14,7 +15,7 @@ def snake() -> None:
     screen = pygame.display.set_mode( (args.width, args.height) )
 
     clock = pygame.time.Clock()
-   
+
     score=0
     pygame.display.set_caption(f"Snake Game - Score: {score}")
 
@@ -42,28 +43,28 @@ def snake() -> None:
 
                 elif event.key == pygame.K_UP:
                     snake.dir= Dir.UP
-            
+
                 elif event.key == pygame.K_DOWN:
                     snake.dir= Dir.DOWN
-            
+
                 elif event.key == pygame.K_RIGHT:
                     snake.dir= Dir.RIGHT
-         
+
                 elif event.key == pygame.K_LEFT:
                     snake.dir= Dir.LEFT
 
-        
+
         snake.move()
-    
+
         board.draw
 
         if snake._position[0] == fruit._position:
-            snake._position.append(snake._position[-1]) #le serpent grandit
+            snake._position.append(snake._position[-1]) #the snake grow
             score += 1
             pygame.display.set_caption(f"Snake Game - Score: {score}")
             fruit.relocate()
-    
-        pygame.display.update()
+
+       pygame.display.update()
 
 import argparse
 from typing import NoReturn
@@ -74,10 +75,6 @@ def lignecommande():
     parser.add_argument('-H','--height', type=int, help= "ligns number", default=DEFAULT_HEIGHT)
     parser.add_argument('-p', '--pixel', type=int, help="pixel", default=DEFAULT_PIXEL)
     return parser.parse_args()
-
-# La fonction lignecommande permet de définir des lignes de commande. 
-# args est un attribut=> Args. contient width et height.
-# Pour changer la taille de notre écran => poetry run snake -W 50 -H 50 => cela définit la taille et la largeur à 50 et 50.
 
 
 def damier(screen, args) -> None:
@@ -90,9 +87,6 @@ def damier(screen, args) -> None:
             pygame.draw.rect(screen, noir, rect)
             a+=1
 
-# Nous utilisons des boucles for pour parcourir l'écran blanc et dessiner les carreaux un à un.
-# Pour introduire le décalage de carreaux, on utilise la variable a qui change de parité à chaque nouvelle ligne dessinée.
-        
 def starting_position(screen, position, args) -> None:  
     vert=(0,250,0)
     p=args.pixel
@@ -100,9 +94,7 @@ def starting_position(screen, position, args) -> None:
     snake= pygame.Rect(colonne_t*p, ligne_t*p, 3*p, 1*p)
     pygame.draw.rect(screen,vert, snake)
 
-# Nous définissons une fonction starting_position qui affiche le serpent vert en position initiale.
-# On multiplie les grandeurs par la taille des carreaux p. La fonction prend en argument STARTING_POSITION qui est une variable globale définie en début de code.
-# Ici STARTING_POSITION=[10,5] => 11ème ligne et 6ème colonne.
+
 class Observer(abc.ABC):
     def __init__(self) -> None:
         super().__init__()
@@ -158,14 +150,14 @@ class Board (Subject, Observer) : # subject car le Board reçoit aussi des infos
     def create_fruit(self)-> Fruit:
         fruit = None
         while fruit is None or not self.detect_collision(fruit) is None:
-            fruit= Fruit (color= pygame.Color("red"), col= rd.randint(0, self._nb_cols=1), row= rd.randint(0, self._nb_cols=1))
-        
+            fruit= Fruit (color= pygame.Color("red"), col= rd.randint(0, 1), row= rd.randint(0, 1))
+
     def detect_collision(self, obj: GameObject):
         for o in self._objects:
             if o != obj and not o.background and o in obj : #opérateur in définit par contains dans GameObject
                 return o
         return None
-    
+
     def notify_object_moved(self, obj: GameObject)-> None:
         o=self.detect_collision(obj)
         if not o is None:
@@ -183,7 +175,7 @@ class GameObject(Subject, Observer): #il vaut mieux mettre Subject en premier. S
     @abc.abstractmethod
     def tiles(self) -> NoReturn:
         raise NotImplementedError
-    
+
     @property
     def background(self):
         return False #by default, a gameobject is not a background
@@ -220,7 +212,7 @@ class Checkerboard(GameObject):
     @property
     def background(self):
         return True
-    
+
     @property
     def tiles(self):
         for row in range(self._height):
@@ -234,13 +226,12 @@ class Snake(GameObject):
         super().__init__()
         self._direction = direction
         self._tiles:list[Tile] =tiles
-    
 
     @classmethod
     def create_from_pos(cls, color, row, column, direction, size):
         tiles= [Tile(row,column+p, color) for p in range (size)]
         return Snake (tiles, direction = direction)
-    
+
     def __len__(self):
         return len(self._tiles)
 
@@ -250,11 +241,11 @@ class Snake(GameObject):
         self._tiles.pop()
         """Notify observers"""
         for obs in self.observers:
-            obs.notify_object_moved(self) # On previent tous les observeurs que le snake a bougé.
+            obs.notify_object_moved(self) # notify observers the snake moved.
         """shrink"""
         if self._size < len(self._tiles):
             self._tiles = self._tiles[:self._size]
-    
+
     @property
     def dir(self):
         return self._direction
@@ -269,7 +260,7 @@ class Snake(GameObject):
 
     def notify_collision (self, obj : GameObject)-> None:
         if isinstance(obj, Fruit):
-            self._size+=1 #On fait en dur, on pourrait généraliser pour ajouter plus de fruits
+            self._size+=1 #we can generalize to add more fruits.
             for obs in self._observers:
                 obs.notify_object_eaten(obj)
 
@@ -278,7 +269,7 @@ class Fruit(GameObject):
     def __init__(self,position, color) -> None:
         super().__init__()
         self._tiles = [Tile(row=position[0], column= position[1], color= color)]
-    
+
     @property
     def tiles(self) -> None:
         iter(self._tiles)
