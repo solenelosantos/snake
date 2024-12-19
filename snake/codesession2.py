@@ -2,16 +2,22 @@ import pygame
 import abc
 import enum
 import random as rd
+import re
 
 DEFAULT_WIDTH= 400
 DEFAULT_HEIGHT= 300
 DEFAULT_PIXEL= 22
 SNAKE_POSITION = [10,5]
+FPS_MIN=5
+FPS_MAX=25
+HEIGHT_MIN=200
+HEIGHT_MAX=400
+
 
 def snake() -> None:
     args=lignecommande()
     pygame.init()
-
+    try :
     screen = pygame.display.set_mode( (args.width, args.height) )
 
     clock = pygame.time.Clock()
@@ -20,9 +26,9 @@ def snake() -> None:
     pygame.display.set_caption(f"Snake Game - Score: {score}")
 
     screen.fill( (255, 255, 255) )
-    board= Board(screen= screen, tile_size= DEFAULT_PIXEL)
+    board= Board(screen= screen, tile_size= DEFAULT_PIXEL, nb_rows=DEFAULT_HEIGHT//DEFAULT_PIXEL, nb_cols=DEFAULT_WIDTH//DEFAULT_PIXEL)
     checkerboard= Checkerboard(args.width, args.height)
-    snake =Snake()
+    snake =Snake([(10,5),(11,5),(12,5)], Dir.LEFT)
     fruit=Fruit(position=(3,3), color=(0,255,0))
     board.add_object(checkerboard)
     board.add_object(snake)
@@ -63,19 +69,55 @@ def snake() -> None:
             score += 1
             pygame.display.set_caption(f"Snake Game - Score: {score}")
             fruit.relocate()
+        pygame.display.update()
 
-       pygame.display.update()
+    except GameOver:
+        pygame.quit()
 
 import argparse
 from typing import NoReturn
+
+
+class SnakeException (Exception):
+    def __init__(self, message :str)->None:
+        super().__init__(message)
+
+class SnakeError( SnakeException):
+    def __init__(self, message :str)->None:
+        super().__init__(message)
+
+class IntRangeError(SnakeError):
+    def __init__(self, name: str, value:int, Vmin: int, Vmax: int)-> None:
+        super().__init__(f"Value {value} of {lignecommande} is out of allowed range [{Vmin}-{Vmax}].")
+
+class ColorError(SnakeError):
+    def __init__(self, bad_color: str, name :str):
+        super().__init__(f"Wrong color {bad_color} for argument name.")
+
+class GameOver (SnakeException):
+    def __init__(self):
+        super().__init__(f'Game over')
+
 
 def lignecommande():
     parser = argparse.ArgumentParser(description='Some description.')
     parser.add_argument('-W', '--width', type=int, help="columns number", default=DEFAULT_WIDTH)
     parser.add_argument('-H','--height', type=int, help= "ligns number", default=DEFAULT_HEIGHT)
     parser.add_argument('-p', '--pixel', type=int, help="pixel", default=DEFAULT_PIXEL)
-    return parser.parse_args()
+    parser.add_argument('--fps', '--framepersecond', type=int, help= "number of frames per second", default=10)
+    parser.add_argument('-c', "--fruit_color", type=str, help= "color of the fruit", default= 'ff0000' )
+    args=parser.parse_args()
 
+    if not (FPS_MIN <= args.fps <= FPS_MAX) :
+        raise IntRangeError ('fps', args.fps, FPS_MIN, FPS_MAX)
+    if not (HEIGHT_MIN <= args.height <= HEIGHT_MAX) :
+        raise IntRangeError ('height', args.height, HEIGHT_MIN, HEIGHT_MAX)
+    #check argument
+    if not re.match(r"#[0-9A-Fa-f]{6}$", args.fruit_color):
+        raise ColorError(args.fruit_color, '--fruit_color')
+    
+
+    return args
 
 def damier(screen, args) -> None:
     w,h,p =args.width, args.height, args.pixel
@@ -126,8 +168,9 @@ class Subject(abc.ABC):
         print(f"Detach observer {obs} from {self}.")
         self._observers.remove(obs)
 
-class Board (Subject, Observer) : # subject car le Board reçoit aussi des infos des objects. 
+class Board (Subject, Observer) : # subject car le Board reçoit aussi des infos des objets. 
     def __init__(self, screen, tile_size, nb_rows, nb_cols) -> None:
+        super().__init__()
         self._screen= screen
         self._tile_size= tile_size
         self._objects=[]
@@ -143,27 +186,27 @@ class Board (Subject, Observer) : # subject car le Board reçoit aussi des infos
         self._objects.append(gameobject)
         gameobject.attach_obs(self) #permet au board de devenir l'observeur des objects ajoutés.
 
-    def remove_object(self, gameobject)
+    def remove_object(self, gameobject):
         gameobject.detach_obs(self) # le board n'est plus l'observateur de l'object.
         self._object.remove(gameobject)
 
-    def create_fruit(self)-> Fruit:
+    def create_fruit(self)-> "Fruit":
         fruit = None
         while fruit is None or not self.detect_collision(fruit) is None:
             fruit= Fruit (color= pygame.Color("red"), col= rd.randint(0, 1), row= rd.randint(0, 1))
 
-    def detect_collision(self, obj: GameObject):
+    def detect_collision(self, obj: "GameObject"):
         for o in self._objects:
             if o != obj and not o.background and o in obj : #opérateur in définit par contains dans GameObject
                 return o
         return None
 
-    def notify_object_moved(self, obj: GameObject)-> None:
+    def notify_object_moved(self, obj: "GameObject")-> None:
         o=self.detect_collision(obj)
         if not o is None:
                 obj.notify_collision(o)
 
-    def notify_object_eaten(self, obj: GameObject)-> None:
+    def notify_object_eaten(self, obj: "GameObject")-> None:
         self.remove_object(obj) # Remove the fruit eaten
         self.create_fruit()
 
@@ -180,7 +223,7 @@ class GameObject(Subject, Observer): #il vaut mieux mettre Subject en premier. S
     def background(self):
         return False #by default, a gameobject is not a background
 
-    def __contains__(self, obj :Object)-> bool:
+    def __contains__(self, obj :"GameObject")-> bool:
         if isinstance(obj, GameObject):
             return any(t in obj.tiles for t in self.tiles)
         return False
@@ -202,6 +245,8 @@ class Tile:
         return Tile (self._row + other.value[1], self._column +other.value[0], self._color)
 
 class Checkerboard(GameObject):
+    """Class used to represent the snake."""
+
     def __init__(self, width, height) -> None:
         super().__init__()
         self._width= width
@@ -222,7 +267,7 @@ class Checkerboard(GameObject):
 class Snake(GameObject):
     """Class used to represent the snake."""
 
-    def __init__(self, tiles, direction) -> None:
+    def __init__(self, tiles: list[Tile], direction) -> None:
         super().__init__()
         self._direction = direction
         self._tiles:list[Tile] =tiles
@@ -236,8 +281,11 @@ class Snake(GameObject):
         return len(self._tiles)
 
     def move(self) -> None:
+        self
+        if self._tiles[0] 
+            raise GameOver
         """Move the snake one tile."""
-        self._tiles.insert(0, self._tiles[0] + self._direction)
+        self._tiles.insert(0, self._tiles[0] + self.dir)
         self._tiles.pop()
         """Notify observers"""
         for obs in self.observers:
@@ -265,6 +313,7 @@ class Snake(GameObject):
                 obs.notify_object_eaten(obj)
 
 class Fruit(GameObject):
+    """Class used to represent the fruit."""
 
     def __init__(self,position, color) -> None:
         super().__init__()
