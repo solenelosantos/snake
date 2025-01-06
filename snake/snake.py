@@ -1,10 +1,10 @@
 
 
 import pygame
-from .game_object import GameObject
+from .gameobject import GameObject
 from .tile import Tile
 from .dir import Dir
-from .exceptions import GameOver
+from .exceptions import SnakeException, GameOver
 from .fruit import Fruit
 
 

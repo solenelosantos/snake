@@ -1,4 +1,4 @@
-from .game import lignecommande 
+
 
 class SnakeException (Exception):
     def __init__(self, message :str)->None:
@@ -10,7 +10,7 @@ class SnakeError( SnakeException):
 
 class IntRangeError(SnakeError):
     def __init__(self, name: str, value:int, Vmin: int, Vmax: int)-> None:
-        super().__init__(f"Value {value} of {lignecommande} is out of allowed range [{Vmin}-{Vmax}].")
+        super().__init__(f"Value {value} is out of allowed range [{Vmin}-{Vmax}].")
 
 class ColorError(SnakeError):
     def __init__(self, bad_color: str, name :str):

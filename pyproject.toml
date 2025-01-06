@@ -21,7 +21,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-snake="snake.codesession2:snake"
+snake="snake.snake:Snake"
 
 [tool.mypy]
 files = "."

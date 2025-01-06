@@ -1,7 +1,7 @@
 import pygame
 import abc
 
-from .gameobject import GameObject
+
 
 class Observer(abc.ABC):
     def __init__(self) -> None:
@@ -13,5 +13,5 @@ class Observer(abc.ABC):
     def notify_object_moved(self, obj: "GameObject") -> None:
         pass
 # C'est le Board qui appelle le fruit et le snake.
-    def notify_collision(self, obj: "GameObject" ) -> None:
+    def notify_collision(self, obj: "GameObject") -> None:
         pass
