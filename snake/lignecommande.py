@@ -20,6 +20,8 @@ def lignecommande():
     parser.add_argument('--fc', "--fruit_color", type=str, help= "color of the fruit", default= '#ff0000' )
     parser.add_argument('--hc', '--snake_head_color', type=str, help="color of the head's snake", default='#ffffff')
     parser.add_argument('--bc', '--snake_body_color', type=str, help="color of the body's snake", default='00ff00')
+    parser.add_argument('--tc', '--text_color', type=str, help='color of the text', default="#ff6eb4")
+    parser.add_argument('--ms', '--max_scores', type= str, help = 'max of scores', default= 5 )
     args=parser.parse_args()
 
     if not (FPS_MIN <= args.fps <= FPS_MAX) :
