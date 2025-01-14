@@ -2,11 +2,13 @@ import pygame
 import re
 import importlib.resources
 import time
+import sys
+from pathlib import Path
 
 from .board import Board
 from .checkerboard import Checkerboard
 from .dir import Dir
-from .exceptions import SnakeException, GameOver, ColorError, IntRangeError
+from .exceptions import GameOver
 from .fruit import Fruit
 from .snake import Snake
 from.lignecommande import lignecommande, DEFAULT_HEIGHT, DEFAULT_PIXEL, DEFAULT_WIDTH
@@ -84,7 +86,7 @@ class Game:
     def __init__(self, width:int, height:int, tile_size:int,fps: int,
                  fruit_color: pygame.Color,
                  snake_head_color: pygame.Color,
-                 snake_body_color: pygame.Color,):
+                 snake_body_color: pygame.Color, scores_file : Path):
         self._width = width
         self._height = height
         self._tile_size = tile_size
@@ -93,6 +95,8 @@ class Game:
         self._snake_head_color = snake_head_color
         self._snake_body_color = snake_body_color
         self._snake= None
+        self._new_high_score= None
+        self._scores_file= scores_file
 
     def _init(self) -> None:
         """Initialize the game."""
@@ -124,7 +128,12 @@ class Game:
         self._board.add_object(self._checkerboard)
 
         # Create scores:
-        self._scores= Scores.default(5)
+        if self._scores_file.exists():
+            pass
+        else : 
+            self._scores= Scores.default(5)
+            self._scores.save(self._scores_file)
+        
 
         # Create snake
         self._resetsnake()
@@ -168,6 +177,18 @@ class Game:
                     self._snake.dir = Dir.LEFT
                 case pygame.K_RIGHT:
                     self._snake.dir = Dir.RIGHT
+
+    def _process_inputname(self, event: pygame.event.Event) -> None :
+        """The player put his/her name in the ranking list of highscores."""
+        if self._new_high_score is not None and event.type == pygame.KEYDOWN :
+            if event.key == pygame.K_RETURN:  # Validate the name
+                self._state = State.SCORES
+            elif event.key == pygame.K_BACKSPACE:  # Correct a mistake
+                self._new_high_score.name=self._new_high_score.name[:-1]
+            else :
+                self._new_high_score.name+= event.unicode
+
+
 
     def _process_events(self) -> None:
         """Process pygame events."""
@@ -243,10 +264,13 @@ class Game:
                         score= self._snake.score
                         self._reset_snake()
                         if self._scores.ishighscore(score):
+                            self._new_high_score= Score(name="", score=score )
+                            self._score.add_score(self._new_high_score)
                             self._state= State.INPUT_NAME
+
                         else : 
                             self._state= State.SCORES
-                case State.SCORES :
+                case State.SCORES | State.INPUT_NAME :
                     self._draw_score()
             
 

@@ -8,6 +8,8 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.12"
 pygame = "^2.6.1"
+pyyaml = "^6.0.2"
+schema = "^0.7.7"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -22,7 +24,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-snake="snake.game:snake"
+snake="snake.main:main"
 
 [tool.mypy]
 files = "."

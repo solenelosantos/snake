@@ -1,6 +1,6 @@
 import argparse
 import re
-from .exceptions import SnakeException, GameOver, ColorError, IntRangeError
+from .exceptions import ColorError, IntRangeError
 
 DEFAULT_WIDTH= 400
 DEFAULT_HEIGHT= 300
@@ -22,6 +22,7 @@ def lignecommande():
     parser.add_argument('--bc', '--snake_body_color', type=str, help="color of the body's snake", default='#00ff00')
     parser.add_argument('--tc', '--text_color', type=str, help='color of the text', default="#ff6eb4")
     parser.add_argument('--ms', '--max_scores', type= str, help = 'max of scores', default= 5 )
+    parser.add_argument('-sf', '--scores_file', type=str, help = 'file which saves and loads the scores', default="snake_scores.yml")
     args=parser.parse_args()
 
     if not (FPS_MIN <= args.fps <= FPS_MAX) :
