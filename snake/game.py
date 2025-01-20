@@ -86,7 +86,7 @@ class Game:
     def __init__(self, width:int, height:int, tile_size:int,fps: int,
                  fruit_color: pygame.Color,
                  snake_head_color: pygame.Color,
-                 snake_body_color: pygame.Color, scores_file : Path):
+                 snake_body_color: pygame.Color, scores_file : Path, gameover_on_exit):
         self._width = width
         self._height = height
         self._tile_size = tile_size
@@ -97,6 +97,7 @@ class Game:
         self._snake= None
         self._new_high_score= None
         self._scores_file= scores_file
+        self._gameover_on_exit = gameover_on_exit
 
     def _init(self) -> None:
         """Initialize the game."""
@@ -118,7 +119,7 @@ class Game:
 
         # Create the main board
         self._board = Board(screen = self._screen,
-                            nb_lines = self._height,
+                            nb_rows = self._height,
                             nb_cols = self._width,
                             tile_size = self._tile_size)
 
@@ -128,11 +129,9 @@ class Game:
         self._board.add_object(self._checkerboard)
 
         # Create scores:
-        if self._scores_file.exists():
-            pass
-        else : 
-            self._scores= Scores.default(5)
-            self._scores.save(self._scores_file)
+        
+        self._scores= Scores.default(5)
+        self._scores.save(self._scores_file)
         
 
         # Create snake
@@ -210,12 +209,12 @@ class Game:
                         self._state= State.QUIT
 
 
-    def _draw_gameover():
+    def _draw_gameover(self):
         text_gameover = self._fontgameover.render("Game Over", True, pygame.Color("red"))
         x, y = 80, 160 # Define the position where to write text.
         self._screen.blit(text_gameover, (x, y))
     
-    def _draw_score():
+    def _draw_score(self):
         x,y= 80,10
         for score in self._scores:
             text_score = self._fontscore.render({score.name}.ljust(Score.MAX_LENGHT)+f" {score.score: .>8}", True, pygame.Color("red"))

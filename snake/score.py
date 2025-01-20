@@ -19,5 +19,28 @@ class Score:
     def score(self)-> int:
         return self._score 
     
-    def __it__(self, other :object)-> bool:
-        return isinstance(other, Score) and self._score< other._score
+    
+    # Implemente the comparaison operators to use the function sort in the lists
+    def __gt__(self, other : object) -> bool :
+        """Define the comparaison operator."""
+        return isinstance(other, Score) and self._score > other._score
+
+    def __lt__(self, other : object) -> bool :
+        """Define the comparaison operator."""
+        return isinstance(other, Score) and self._score < other._score
+
+    def __eq__(self, other : object) -> bool :
+        """Define the comparaison operator."""
+        return isinstance(other, Score) and self._score == other._score
+
+    def __ge__(self, other : object) -> bool :
+        """Define the comparaison operator."""
+        return isinstance(other, Score) and self._score >= other._score
+
+    def __le__(self, other : object) -> bool :
+        """Define the comparaison operator."""
+        return isinstance(other, Score) and self._score <= other._score
+
+    def __ne__(self, other : object) -> bool :
+        """Define the comparaison operator."""
+        return isinstance(other, Score) and self._score != other._score

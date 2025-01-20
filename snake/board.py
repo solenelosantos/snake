@@ -22,13 +22,15 @@ class Board (Subject, Observer) : # subject car le Board reçoit aussi des infos
             for tile in obj.tiles:
                 tile.draw(self._screen, self._tile_size )
 
-    def add_object(self,gameobject):
-        self._objects.append(gameobject)
-        gameobject.attach_obs(self) #permet au board de devenir l'observeur des objects ajoutés.
+    def add_object(self,gameobject: GameObject):
+        if gameobject not in self._objects:
+            self._objects.append(gameobject)
+            gameobject.attach_obs(self) #permet au board de devenir l'observeur des objects ajoutés.
 
-    def remove_object(self, gameobject):
-        gameobject.detach_obs(self) # le board n'est plus l'observateur de l'object.
-        self._object.remove(gameobject)
+    def remove_object(self, gameobject: GameObject):
+        if gameobject in self._objects:
+            gameobject.detach_obs(self) # le board n'est plus l'observateur de l'object.
+            self._object.remove(gameobject)
 
     def create_fruit(self)-> "Fruit":
         fruit = None

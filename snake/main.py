@@ -11,7 +11,7 @@ def main() -> None:
     try:
         # Read command line arguments
         args = lignecommande()
-
+        
         # Start game
         Game(width = args.width, height = args.height,
              tile_size = args.tile_size, fps = args.fps,

@@ -1,25 +1,58 @@
 
 
 import pygame
+import typing
+import random
+
 from .gameobject import GameObject
 from .tile import Tile
 from .dir import Dir
-from .exceptions import SnakeException, GameOver
+from .exceptions import GameOver
 from .fruit import Fruit
+
 
 
 class Snake(GameObject):
     """Class used to represent the snake."""
 
-    def __init__(self, tiles: list[Tile], direction : Dir) -> None:
-        super().__init__()
-        self._direction = direction
-        self._tiles:list[Tile] =tiles
+    def __init__(self, tiles: list[Tile], direction: Dir, *,
+                 gameover_on_exit: bool = False) -> None:
+        """Object initialization."""
+        self._tiles = tiles
+        self._dir = direction
+        self._length = len(tiles)
+        self._gameover_on_exit = gameover_on_exit
 
+    # Create a Snake at random position on the board
     @classmethod
-    def create_from_pos(cls, color, row, column, direction, size):
-        tiles= [Tile(row,column+p, color) for p in range (size)]
-        return Snake (tiles, direction = direction)
+    def create_random(cls, nb_lines: int, nb_cols: int, # noqa: PLR0913
+                      length: int,
+                      *,
+                      head_color: pygame.Color,
+                      body_color: pygame.Color,
+                      gameover_on_exit: bool = False) -> typing.Self:
+        """Create a snake and place it randomly on the board."""
+        tiles = [] # List of tuples (col_index, line_index)
+
+        # Choose head
+        random.seed()
+        x = random.randint(length - 1, nb_cols - length)
+        y = random.randint(length - 1, nb_lines - length)
+        tiles.append(Tile(x, y, head_color))
+
+        # Choose body orientation (i.e.: in which direction the snake will move)
+        random.seed()
+        snake_dir = random.sample([Dir.LEFT, Dir.RIGHT, Dir.UP, Dir.DOWN], 1)[0]
+
+        # Create body
+        while len(tiles) < length:
+            tile = tiles[-1] - snake_dir
+            tile.color = body_color
+            tiles.append(tile)
+
+        return cls(tiles, direction = snake_dir,
+                   gameover_on_exit = gameover_on_exit)
+
 
     @property
     def dir(self) -> Dir:

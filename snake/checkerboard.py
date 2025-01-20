@@ -7,10 +7,10 @@ from .tile import Tile
 class Checkerboard(GameObject):
     """Class used to represent the snake."""
 
-    def __init__(self, width, height) -> None:
+    def __init__(self, nb_lines, nb_cols) -> None:
         super().__init__()
-        self._width= width
-        self._height= height
+        self._width= nb_lines
+        self._height= nb_cols
         self._color1= (0,0,0)
         self._color2=(255,255,255)
 

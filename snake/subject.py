@@ -1,6 +1,4 @@
-import pygame
 import abc
-
 from .observer import Observer
 
 class Subject(abc.ABC):
