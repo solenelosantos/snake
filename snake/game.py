@@ -5,16 +5,16 @@ import time
 import sys
 from pathlib import Path
 
-from .board import Board
-from .checkerboard import Checkerboard
-from .dir import Dir
-from .exceptions import GameOver
-from .fruit import Fruit
-from .snake import Snake
-from.lignecommande import lignecommande, DEFAULT_HEIGHT, DEFAULT_PIXEL, DEFAULT_WIDTH
-from .state import State
-from .scores import Scores
-from .score import Score
+from snake.board import Board
+from snake.checkerboard import Checkerboard
+from snake.dir import Dir
+from snake.exceptions import GameOver
+from snake.fruit import Fruit
+from snake.snake_body import Snake
+from snake.lignecommande import lignecommande, DEFAULT_HEIGHT, DEFAULT_PIXEL, DEFAULT_WIDTH
+from snake.state import State
+from snake.scores import Scores
+from snake.score import Score
 
 # Constants
 SK_START_LENGTH = 3

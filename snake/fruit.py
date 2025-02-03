@@ -1,7 +1,5 @@
-import pygame
-
-from .gameobject import GameObject
-from .tile import Tile
+from snake.gameobject import GameObject
+from snake.tile import Tile
 
 
 class Fruit(GameObject):

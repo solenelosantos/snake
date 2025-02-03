@@ -1,5 +1,5 @@
 import abc
-from .observer import Observer
+from snake.observer import Observer
 
 class Subject(abc.ABC):
 

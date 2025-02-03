@@ -4,11 +4,11 @@ import pygame
 import typing
 import random
 
-from .gameobject import GameObject
-from .tile import Tile
-from .dir import Dir
-from .exceptions import GameOver
-from .fruit import Fruit
+from snake.gameobject import GameObject
+from snake.tile import Tile
+from snake.dir import Dir
+from snake.exceptions import GameOver
+from snake.fruit import Fruit
 
 
 

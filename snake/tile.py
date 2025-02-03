@@ -1,6 +1,6 @@
 import pygame
 
-from .dir import Dir
+from snake.dir import Dir
 
 class Tile:
     

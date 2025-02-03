@@ -1,9 +1,9 @@
 import sys
 
 # First party
-from .lignecommande import lignecommande
-from .exceptions import SnakeError
-from .game import Game
+from snake.lignecommande import lignecommande
+from snake.exceptions import SnakeError
+from snake.game import Game
 
 
 def main() -> None:

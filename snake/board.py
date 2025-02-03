@@ -1,10 +1,10 @@
 import pygame
 import random as rd
 
-from .subject import Subject
-from .observer import Observer
-from .fruit import Fruit
-from .gameobject import GameObject
+from snake.subject import Subject
+from snake.observer import Observer
+from snake.fruit import Fruit
+from snake.gameobject import GameObject
 
 
 

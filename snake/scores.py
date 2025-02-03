@@ -1,4 +1,4 @@
-from .score import Score
+from snake.score import Score
 import typing
 import yaml
 from pathlib import Path

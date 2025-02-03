@@ -1,6 +1,6 @@
 import argparse
 import re
-from .exceptions import ColorError
+from snake.exceptions import ColorError, IntRangeError
 from pathlib import Path
 
 DEFAULT_WIDTH= 400

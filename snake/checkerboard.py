@@ -1,11 +1,9 @@
-import pygame
-
-from .gameobject import GameObject
-from .tile import Tile
+from snake.gameobject import GameObject
+from snake.tile import Tile
 
 
 class Checkerboard(GameObject):
-    """Class used to represent the snake."""
+    """Class used to represent the Checkerboard."""
 
     def __init__(self, nb_lines, nb_cols) -> None:
         super().__init__()

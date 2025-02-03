@@ -1,7 +1,6 @@
-import pygame
 import abc
-from .subject import Subject
-from .observer import Observer
+from snake.subject import Subject
+from snake.observer import Observer
 from typing import NoReturn
 
 class GameObject(Subject, Observer): #il vaut mieux mettre Subject en premier. Subject=class, Observeur= interface
