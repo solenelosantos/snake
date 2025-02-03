@@ -1,3 +1,7 @@
+import pygame
+import typing
+import random
+
 from snake.gameobject import GameObject
 from snake.tile import Tile
 
@@ -5,16 +9,29 @@ from snake.tile import Tile
 class Fruit(GameObject):
     """Class used to represent the fruit."""
 
-    def __init__(self,position, color) -> None:
+    
+    color = pygame.Color("black")
+
+    def __init__(self, tile: Tile) -> None:
+        """Object initialization."""
         super().__init__()
-        self._tiles = [Tile(row=position[0], column= position[1], color= color)]
+        self._tiles = [tile]
 
     @property
-    def tiles(self) -> None:
-        iter(self._tiles)
+    def tiles(self) -> typing.Iterator[Tile]:
+        """
+        An iterator on the tiles.
 
-    def relocate(self) -> None:
-        if self._position == (3,3):
-            self._position= (13,10)
-        elif self._position == (13,10):
-            self._position= (3,3)
+        Note that this object contains only one tile.
+        """
+        return iter(self._tiles)
+
+    # Create a Fruit at random position on the board
+    @classmethod
+    def create_random(cls, nb_lines: int, nb_cols: int) -> typing.Self:
+        """Create a random fruit."""
+        
+        random.seed()
+        x = random.randint(0, nb_cols - 1)
+        y = random.randint(0, nb_lines - 1)
+        return cls(Tile(x, y, cls.color))

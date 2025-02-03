@@ -12,11 +12,11 @@ class GameObject(Subject, Observer): #il vaut mieux mettre Subject en premier. S
     def tiles(self) -> NoReturn: 
         raise NotImplementedError
 
-    @property
-    def background(self):
+    def background(self)-> bool:
         return False #by default, a gameobject is not a background
 
     def __contains__(self, obj :"GameObject")-> bool:
-        if isinstance(obj, GameObject):
-            return any(t in obj.tiles for t in self.tiles)
-        return False
+        """Check if an game object intersects with another."""
+        if not isinstance(obj, GameObject):
+            return False
+        return any(t in self.tiles for t in obj.tiles)

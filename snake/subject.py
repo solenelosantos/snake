@@ -5,7 +5,7 @@ class Subject(abc.ABC):
 
     def __init__(self) -> None:
         super().__init__()
-        self._observers: list[Observer] = []
+        self._observers = []
 
     @property
     def observers(self) -> list[Observer]:

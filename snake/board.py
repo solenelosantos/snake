@@ -1,5 +1,5 @@
-import pygame
-import random as rd
+
+import typing
 
 from snake.subject import Subject
 from snake.observer import Observer
@@ -34,14 +34,17 @@ class Board (Subject, Observer) : # subject car le Board reçoit aussi des infos
 
     def create_fruit(self)-> "Fruit":
         fruit = None
-        while fruit is None or not self.detect_collision(fruit) is None:
-            fruit= Fruit (color= pygame.Color("red"), col= rd.randint(0, 1), row= rd.randint(0, 1))
+        while fruit is None or list(self.detect_collision(fruit)):
+            fruit= Fruit.create_random(self._nb_rows, self._nb_cols)
+        self.add_object(fruit)
 
-    def detect_collision(self, obj: "GameObject"):
+    def detect_collision(self, obj: "GameObject")-> typing.Iterator[GameObject]:
+        # Loop on all known objects
         for o in self._objects:
-            if o != obj and not o.background and o in obj : #opérateur in définit par contains dans GameObject
-                return o
-        return None
+
+            # Detect a collision
+            if obj != o and not o.background() and obj in o:
+                yield o
 
     def notify_object_moved(self, obj: "GameObject")-> None:
         o=self.detect_collision(obj)
