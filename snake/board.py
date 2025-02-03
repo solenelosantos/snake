@@ -76,7 +76,6 @@ class Board(Subject, Observer):
         """Check if an object collides with other objects on the board."""
         # Loop on all known objects
         for o in self._objects:
-
             # Detect a collision
-            if obj != o and not o.background and obj in o:
+            if obj != o and not o.is_background() and obj in o:
                 yield o

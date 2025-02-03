@@ -13,15 +13,18 @@ from snake.state import State
 from snake.scores import Scores
 from snake.score import Score
 
+
 # Constants
 SK_START_LENGTH = 3
+MAX_LENGHT = 8
+MAX_SCORES = 5
 
 class Game:
 
     def __init__(self, width:int, height:int, tile_size:int,fps: int,
                  fruit_color: pygame.Color,
                  snake_head_color: pygame.Color,
-                 snake_body_color: pygame.Color, scores_file : Path, gameover_on_exit):
+                 snake_body_color: pygame.Color, gameover_on_exit):
         self._width = width
         self._height = height
         self._tile_size = tile_size
@@ -31,8 +34,10 @@ class Game:
         self._snake_body_color = snake_body_color
         self._snake= None
         self._new_high_score = None | Score
-        self._scores_file= scores_file
         self._gameover_on_exit = gameover_on_exit
+
+        # Chargement des scores depuis le fichier YAML
+        self._scores = Scores.load("high_scores.yaml")
 
     def _reset_snake(self) -> None:
         """Reset the snake."""
@@ -78,16 +83,9 @@ class Game:
         self._checkerboard = Checkerboard(nb_lines = self._height,
                                           nb_cols = self._width)
         self._board.add_object(self._checkerboard)
-    
-        # Create scores:
-        
-        self._scores= Scores.default(5)
-        self._scores.save(self._scores_file)
-        
 
         # Create snake
         self._reset_snake()
-        
 
         # Create fruit
         Fruit.color = self._fruit_color
@@ -136,31 +134,33 @@ class Game:
     def _process_inputname(self, event: pygame.event.Event) -> None :
         """The player put his/her name in the ranking list of highscores."""
         if self._new_high_score is not None and event.type == pygame.KEYDOWN :
-            if event.key == pygame.K_RETURN:  # Validate the name
-                self._state = State.SCORES
-            elif event.key == pygame.K_BACKSPACE:  # Correct a mistake
-                self._new_high_score.name=self._new_high_score.name[:-1]
-            else :
-                self._new_high_score.name+= event.unicode
+                if event.key == pygame.K_RETURN:  # Validate the name
+                    # Save the score with the player's name
+                    self._scores.add_score(self._new_high_score)  # Add the score with the name
+                    self._scores.save("high_scores.yaml")  # Save the scores in the YAML file
+                    self._state = State.SCORES  # Return to the scores screen, not quit
+                elif event.key == pygame.K_BACKSPACE:  # Correct a mistake
+                    self._new_high_score.name=self._new_high_score.name[:-1]
+                else :
+                    self._new_high_score.name+= event.unicode
 
     def _process_events(self) -> None:
         """Process pygame events."""
-        # Loop on all events
         for event in pygame.event.get():
-
-            match self._state:
-                case State.SCORES :
-                    self._process_scores_event(event)
-                case State.PLAY:
-                    self._process_play_event(event)
-            # Closing window (Mouse click on cross icon or OS keyboard shortcut)
             if event.type == pygame.QUIT:
-                self._state= State.QUIT
+                self._state = State.QUIT  # Properly handle quit event
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_q:  # Press 'Q' to quit
+                    self._state = State.QUIT
+                # Handle other states
+                match self._state:
+                    case State.SCORES:
+                        self._process_scores_event(event)
+                    case State.PLAY:
+                        self._process_play_event(event)
+                    case State.INPUT_NAME:
+                        self._process_inputname(event)
 
-            if event.type == pygame.KEYDOWN:
-                match event.key:
-                    case pygame.K_q:
-                        self._state= State.QUIT
         
     def start(self) -> None:
         """Start the game."""
@@ -172,7 +172,7 @@ class Game:
         self._init()
 
         # Start pygame loop
-        self._state= State.PLAY
+        self._state= State.SCORES
 
         while self._state != State.QUIT:
 
@@ -202,7 +202,7 @@ class Game:
                         self._reset_snake()
                         if self._scores.is_highscore(score):
                             self._new_high_score = Score(name="", score=score)
-                            self._state = State.INPUT_NAME  # Switch to name input state
+                            self._state = State.INPUT_NAME
                         else:
                             self._state = State.SCORES
                 case State.SCORES:

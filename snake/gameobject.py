@@ -17,7 +17,7 @@ class GameObject(Subject, Observer):
         """The tiles of the object."""
         raise NotImplementedError
 
-    def background(self)-> bool:
+    def is_background(self)-> bool:
         """Tell if this object is a background object."""
         return False #by default, a gameobject is not a background
 

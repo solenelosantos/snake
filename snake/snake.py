@@ -11,9 +11,10 @@ from snake.exceptions import GameOver
 from snake.fruit import Fruit
 
 
+SK_START_LENGTH = 3
 
 class Snake(GameObject):
-    """Class used to represent the snake."""
+    """The snake."""
 
     def __init__(self, tiles: list[Tile], direction: Dir, *,
                  gameover_on_exit: bool = False) -> None:
@@ -23,6 +24,73 @@ class Snake(GameObject):
         self._dir = direction
         self._length = len(tiles)
         self._gameover_on_exit = gameover_on_exit
+
+    @property
+    def length(self) -> int:
+        """Snake length."""
+        return self._length
+
+    @property
+    def tiles(self) -> typing.Iterator[Tile]:
+        """Iterator on the tiles."""
+        return iter(self._tiles)
+
+    @property
+    def score(self) -> int :
+        """Score of the player."""
+        return self._length-SK_START_LENGTH
+
+    @property
+    def dir(self) -> Dir:
+        """Snake direction."""
+        return self._dir
+
+    @dir.setter
+    def dir(self, direction: Dir) -> None:
+        self._dir = direction
+
+    def notify_out_of_board(self, width: int, height: int) -> None:
+        """Snake has exited the board."""
+        if self._gameover_on_exit:
+            raise GameOver
+
+        # Only the head has exited
+        self._tiles[0].x = self._tiles[0].x % width
+        self._tiles[0].y = self._tiles[0].y % height
+
+    def notify_collision(self, obj: GameObject) -> None:
+        """Notify that an object collides with another."""
+        if isinstance(obj, Fruit):
+
+            # Grow
+            self._length += 1
+
+            # Notify that the fruit has been eaten
+            for obs in self.observers:
+                obs.notify_object_eaten(obj)
+
+    def move(self) -> None:
+        """Let the snake advance."""
+        # Create new head
+        new_head = self._tiles[0] + self._dir
+
+        # Slither on itself?
+        if new_head in self._tiles:
+            raise GameOver
+
+        # Current head changes color
+        self._tiles[0].color = self._tiles[-1].color
+
+        # Insert new head
+        self._tiles.insert(0, new_head)
+
+        # Notify movement
+        for obs in self.observers:
+            obs.notify_object_moved(self)
+
+        # Remove queue tiles if needed
+        if len(self._tiles) > self._length:
+            del self._tiles[self._length:]
 
     # Create a Snake at random position on the board
     @classmethod
@@ -54,52 +122,3 @@ class Snake(GameObject):
         return cls(tiles, direction = snake_dir,
                    gameover_on_exit = gameover_on_exit)
 
-    @property
-    def length(self) -> int:
-        """Snake length."""
-        return self._length
-    
-    @property
-    def dir(self) -> Dir:
-        """Snake direction."""
-        return self._dir
-
-    @dir.setter
-    def dir(self, direction: Dir) -> None:
-        self._dir= direction
-
-    def notify_out_of_board(self, width: int, height: int) -> None:
-        """Snake has exited the board."""
-        if self._gameover_on_exit:
-            raise GameOver
-
-        # Only the head has exited
-        self._tiles[0].x = self._tiles[0].x % width
-        self._tiles[0].y = self._tiles[0].y % height
-
-
-    def move(self) -> None:
-        new_head =self._tiles[0] + self._dir
-        # check if the snake slithers on itself
-        if new_head in self._tiles:
-            raise GameOver
-        # Move the snake one tile
-        self._tiles.insert(0, new_head)
-        self._tiles.pop()
-        # Notify observers the snake moved.
-        for obs in self.observers:
-            obs.notify_object_moved(self)
-        # shrink
-        if self._length < len(self._tiles):
-            self._tiles = self._tiles[:self._length]
-
-    @property
-    def tiles(self) -> typing.Iterator[Tile]:
-        """Iterator on the tiles."""
-        return iter(self._tiles)
-
-    def notify_collision (self, obj : GameObject)-> None:
-        if isinstance(obj, Fruit):
-            self._length+=1 #we can generalize to add more fruits.
-            for obs in self._observers:
-                obs.notify_object_eaten(obj)

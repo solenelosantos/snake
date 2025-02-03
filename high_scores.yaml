@@ -1,0 +1,12 @@
+max_scores: 5
+scores:
+- name: Jack
+  score: 8
+- name: William
+  score: 6
+- name: solene
+  score: 5
+- name: Averell
+  score: 4
+- name: Soso
+  score: 2

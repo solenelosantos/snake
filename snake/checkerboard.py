@@ -15,8 +15,8 @@ class Checkerboard(GameObject):
         self._color1= (0,0,0)
         self._color2=(255,255,255)
 
-    @property
-    def background(self)-> bool:
+    
+    def is_background(self)-> bool:
         """Test if this object is a background object."""
         return True
 
