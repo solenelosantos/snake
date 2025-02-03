@@ -1,8 +1,5 @@
 import pygame
-import re
 import importlib.resources
-import time
-import sys
 from pathlib import Path
 
 from snake.board import Board
@@ -19,68 +16,6 @@ from snake.score import Score
 # Constants
 SK_START_LENGTH = 3
 
-def snake() -> None:
-    args=lignecommande()
-    pygame.init()
-
-    try :
-        screen = pygame.display.set_mode( (args.width, args.height) )
-
-        clock = pygame.time.Clock()
-
-        score=0
-        pygame.display.set_caption(f"Snake Game - Score: {score}")
-        
-        screen.fill( (255, 255, 255) )
-        board= Board(screen= screen, tile_size= DEFAULT_PIXEL, nb_rows=DEFAULT_HEIGHT//DEFAULT_PIXEL, nb_cols=DEFAULT_WIDTH//DEFAULT_PIXEL)
-        checkerboard= Checkerboard(args.width, args.height)
-        snake =Snake([(10,5),(11,5),(12,5)], Dir.LEFT)
-        fruit=Fruit(position=(3,3), color=(0,255,0))
-        board.add_object(checkerboard)
-        board.add_object(snake)
-        board.add_object(fruit)
-        
-        Flag=True
-        
-        while Flag:
-            
-            clock.tick(3)
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    Flag=False
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_q:
-                        Flag= False
-
-                    elif event.key == pygame.K_UP:
-                        snake.dir= Dir.UP
-
-                    elif event.key == pygame.K_DOWN:
-                        snake.dir= Dir.DOWN
-
-                    elif event.key == pygame.K_RIGHT:
-                        snake.dir= Dir.RIGHT
-
-                    elif event.key == pygame.K_LEFT:
-                        snake.dir= Dir.LEFT
-
-            snake.move()
-
-            if snake._position[0] == fruit._position:
-                snake._position.append(snake._position[-1]) #the snake grow
-                score += 1
-                pygame.display.set_caption(f"Snake Game - Score: {score}")
-                fruit.relocate()
-            pygame.display.update()
-            
-
-        pygame.quit()
-        
-    
-    except GameOver:
-        pygame.quit()
-
 class Game:
 
     def __init__(self, width:int, height:int, tile_size:int,fps: int,
@@ -95,7 +30,7 @@ class Game:
         self._snake_head_color = snake_head_color
         self._snake_body_color = snake_body_color
         self._snake= None
-        self._new_high_score= None
+        self._new_high_score = None | Score
         self._scores_file= scores_file
         self._gameover_on_exit = gameover_on_exit
 
@@ -122,6 +57,7 @@ class Game:
             self._fontscore= pygame.font.Font(f,32)
             self._fontgameover= pygame.font.Font(f,64)
             self._highscore= pygame.font.Font(f,32)
+        
 
 
         # Create a display screen
@@ -157,6 +93,28 @@ class Game:
         Fruit.color = self._fruit_color
         self._board.create_fruit()
 
+    def _drawgameover(self) -> None:
+        """Draw the gameover's sentence."""
+        text_gameover = self._fontgameover.render("GAME OVER", True, pygame.Color("red"))
+        x, y = 80, 160  # Define the position where to write text.
+        self._screen.blit(text_gameover, (x, y))
+
+    def _draw_scores(self) -> None:
+        """Put a highscore's line."""
+        x, y = 80, 10  # Define the position where to write text.
+        for score in self._scores:
+            text_scores = self._fontscore.render(score.name.ljust(Score.MAX_LENGTH) + f" {score.score: >8}", True, pygame.Color("red"))
+            self._screen.blit(text_scores, (x, y))
+            y += 32
+        pygame.display.update()
+
+    def _draw_inputname(self) -> None:
+        """Draw the input name screen."""
+        text = self._highscore.render(f"Enter your name: {self._new_high_score.name}", True, pygame.Color("red"))
+        x, y = 80, 10  # Position of the text
+        self._screen.blit(text, (x, y))
+        pygame.display.update()
+
     def _process_scores_event(self,event):
         if event.type== pygame.KEYDOWN and event.key== pygame.K_SPACE:
             self._state= State.PLAY
@@ -185,8 +143,6 @@ class Game:
             else :
                 self._new_high_score.name+= event.unicode
 
-
-
     def _process_events(self) -> None:
         """Process pygame events."""
         # Loop on all events
@@ -205,19 +161,6 @@ class Game:
                 match event.key:
                     case pygame.K_q:
                         self._state= State.QUIT
-
-
-    def _draw_gameover(self):
-        text_gameover = self._fontgameover.render("Game Over", True, pygame.Color("red"))
-        x, y = 80, 160 # Define the position where to write text.
-        self._screen.blit(text_gameover, (x, y))
-    
-    def _draw_score(self):
-        x,y= 80,10
-        for score in self._scores:
-            text_score = self._fontscore.render({score.name}.ljust(Score.MAX_LENGHT)+f" {score.score: .>8}", True, pygame.Color("red"))
-            self._screen.blit(text_score, (x, y))
-            y+=32
         
     def start(self) -> None:
         """Start the game."""
@@ -245,29 +188,27 @@ class Game:
                     self._snake.move()
 
             except GameOver:
-                self._state= State.GAME_OVER
+                self._state= State.GAMEOVER
                 cpt= self._fps
 
             # Draw
             self._board.draw()
-
-
             match self._state:
-                case State.GAME_OVER:
-                    self._draw_gameover()
-                    cpt-=1
-                    if cpt ==0 :
-                        score= self._snake.score
+                case State.GAMEOVER:
+                    self._drawgameover()
+                    cpt-= 1
+                    if cpt == 0:
+                        score = self._snake.score
                         self._reset_snake()
-                        if self._scores.ishighscore(score):
-                            self._new_high_score= Score(name="", score=score )
-                            self._score.add_score(self._new_high_score)
-                            self._state= State.INPUT_NAME
-
-                        else : 
-                            self._state= State.SCORES
-                case State.SCORES | State.INPUT_NAME :
-                    self._draw_score()
+                        if self._scores.is_highscore(score):
+                            self._new_high_score = Score(name="", score=score)
+                            self._state = State.INPUT_NAME  # Switch to name input state
+                        else:
+                            self._state = State.SCORES
+                case State.SCORES:
+                    self._draw_scores()
+                case State.INPUT_NAME:
+                    self._draw_inputname()
             
 
             # Display

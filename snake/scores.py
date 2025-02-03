@@ -30,4 +30,37 @@ class Scores:
         with scores_file.open("w") as fd:
             yaml.safe_dump(x, fd)
 
+    @staticmethod
+    def load(filename: str = "high_scores.yaml") -> "Scores":
+        """Load scores from a YAML file or create a file with default scores if it doesn't exist."""
+        try:
+            with open(filename, "r") as f:
+                data = yaml.safe_load(f)
+                if not data or 'scores' not in data:  # If the file is empty or malformed
+                    print("No valid scores found in file, creating a new file with default scores.")  # Debug
+                    return Scores.default(max_scores=5)
+                max_scores = data.get("max_scores", 5)
+                scores = [
+                    Score(score=item["score"], name=item["name"])
+                    for item in data.get("scores", [])
+                ]
+                return Scores(max_scores, scores)
+        except FileNotFoundError:
+            print(f"File {filename} not found, creating a new file with default scores.")  # Debug
+            # If the file doesn't exist, create one with default scores
+            return Scores.default(max_scores=5)
+        
+    @staticmethod
+    def default(max_scores: int) -> "Scores":
+        """Return a default instance with predefined scores."""
+        return Scores(
+            max_scores,
+            [
+                Score(score=-1, name="Joe"),
+                Score(score=8, name="Jack"),
+                Score(score=0, name="Averell"),
+                Score(score=6, name="William"),
+            ],
+        )
+
 

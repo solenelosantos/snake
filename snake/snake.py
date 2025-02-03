@@ -68,6 +68,16 @@ class Snake(GameObject):
     def dir(self, direction: Dir) -> None:
         self._dir= direction
 
+    def notify_out_of_board(self, width: int, height: int) -> None:
+        """Snake has exited the board."""
+        if self._gameover_on_exit:
+            raise GameOver
+
+        # Only the head has exited
+        self._tiles[0].x = self._tiles[0].x % width
+        self._tiles[0].y = self._tiles[0].y % height
+
+
     def move(self) -> None:
         new_head =self._tiles[0] + self._dir
         # check if the snake slithers on itself

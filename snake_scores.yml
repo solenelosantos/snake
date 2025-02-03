@@ -1,8 +1,8 @@
-- name: Joe
-  score: 100
 - name: Jack
-  score: 80
+  score: 8
 - name: William
-  score: 60
+  score: 6
 - name: Averell
-  score: 40
+  score: 0
+- name: Joe
+  score: -1

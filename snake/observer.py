@@ -1,3 +1,7 @@
+import typing
+
+if typing.TYPE_CHECKING:
+    from .game_object import GameObject
 
 
 class Observer():
@@ -15,3 +19,6 @@ class Observer():
 
     def notify_object_eaten(self, obj: "GameObject") -> None:
         """Notify that an object is eaten."""
+    
+    def notify_out_of_board(self, width: int, height: int) -> None:
+        """Notify an object that it has exited the board."""

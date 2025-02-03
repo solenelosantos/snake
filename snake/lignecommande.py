@@ -3,13 +3,13 @@ import re
 from snake.exceptions import ColorError, IntRangeError
 from pathlib import Path
 
-DEFAULT_WIDTH= 400
-DEFAULT_HEIGHT= 300
-DEFAULT_PIXEL= 22
+DEFAULT_WIDTH= 32
+DEFAULT_HEIGHT= 24
+DEFAULT_PIXEL= 20
 SNAKE_POSITION = [10,5]
 FPS_MIN=5
 FPS_MAX=25
-HEIGHT_MIN=200
+HEIGHT_MIN=10
 HEIGHT_MAX=400
 
 def lignecommande():
@@ -17,9 +17,9 @@ def lignecommande():
     parser.add_argument('-W', '--width', type=int, help="columns number", default=DEFAULT_WIDTH)
     parser.add_argument('-H','--height', type=int, help= "ligns number", default=DEFAULT_HEIGHT)
     parser.add_argument('--tile_size', type=int, help="size of a tile", default=DEFAULT_PIXEL)
-    parser.add_argument('--fps', '--framepersecond', type=int, help= "number of frames per second", default=10)
+    parser.add_argument('--fps', '--framepersecond', type=int, help= "number of frames per second", default=8)
     parser.add_argument( '--fruit_color', type=str, help= "color of the fruit", default= '#ff0000' )
-    parser.add_argument('--snake_head_color', type=str, help="color of the head's snake", default='#ffffff')
+    parser.add_argument('--snake_head_color', type=str, help="color of the head's snake", default='#00ff00')
     parser.add_argument( '--snake_body_color', type=str, help="color of the body's snake", default='#00ff00')
     parser.add_argument('--tc', '--text_color', type=str, help='color of the text', default="#ff6eb4")
     parser.add_argument('--ms', '--max_scores', type= str, help = 'max of scores', default= 5 )

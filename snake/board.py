@@ -1,4 +1,4 @@
-
+import pygame
 import typing
 
 from snake.subject import Subject
@@ -8,29 +8,38 @@ from snake.gameobject import GameObject
 
 
 
-class Board (Subject, Observer) : # subject car le Board reçoit aussi des infos des objets. 
-    def __init__(self, screen, tile_size, nb_rows, nb_cols) -> None:
+class Board(Subject, Observer):
+    """Main class that handles all game objects."""
+
+    def __init__(self, screen: pygame.Surface, nb_rows: int, nb_cols: int,
+                 tile_size: int) -> None:
+        """Object initialization."""
         super().__init__()
-        self._screen= screen
-        self._tile_size= tile_size
-        self._objects : list[GameObject]=[]
-        self._nb_rows= nb_rows
-        self._nb_cols= nb_cols
+        self._screen = screen
+        self._nb_lines = nb_rows
+        self._nb_cols = nb_cols
+        self._tile_size = tile_size
+        self._objects: list[GameObject] = []
 
-    def add_object(self,gameobject: GameObject):
-        if gameobject not in self._objects:
-            self._objects.append(gameobject)
-            gameobject.attach_obs(self) #permet au board de devenir l'observeur des objects ajoutés.
+    def add_object(self, obj: GameObject) -> None:
+        """Add an object to the board."""
+        # Add object if not already there
+        if obj not in self._objects:
+            self._objects.append(obj)
+            obj.attach_obs(self)
 
-    def remove_object(self, gameobject: GameObject):
-        if gameobject in self._objects:
-            gameobject.detach_obs(self) # le board n'est plus l'observateur de l'object.
-            self._object.remove(gameobject)
+    def remove_object(self, obj: GameObject) -> None:
+        """Remove an object from the board."""
+        # Add object if not already there
+        if obj in self._objects:
+            self._objects.remove(obj)
+            obj.detach_obs(self)
 
-    def create_fruit(self)-> "Fruit":
+    def create_fruit(self) -> None:
+        """Create a random fruit."""
         fruit = None
-        while fruit is None or list(self.detect_collision(fruit)):
-            fruit= Fruit.create_random(self._nb_rows, self._nb_cols)
+        while fruit is None or list(self.collides(fruit)):
+            fruit = Fruit.create_random(self._nb_lines, self._nb_cols)
         self.add_object(fruit)
 
     def draw(self) -> None:
@@ -41,19 +50,33 @@ class Board (Subject, Observer) : # subject car le Board reçoit aussi des infos
             for tile in obj.tiles:
                 tile.draw(self._screen, self._tile_size)
 
-    def detect_collision(self, obj: "GameObject")-> typing.Iterator[GameObject]:
+    def notify_object_eaten(self, obj: GameObject) -> None:
+        """Notify that the fruit has been eaten."""
+        if isinstance(obj, Fruit):
+            # Remove the fruit
+            self.remove_object(obj)
+
+            # Create a new fruit
+            self.create_fruit()
+
+    def notify_object_moved(self, obj: GameObject) -> None:
+        """Notify that an object has moved."""
+        # Detect board exit
+        for tile in obj.tiles:
+            if not (0 <= tile.x < self._nb_cols and
+                    0 <= tile.y < self._nb_lines):
+                obj.notify_out_of_board(width = self._nb_cols,
+                                        height = self._nb_lines)
+
+        # Detect collisions
+        for o in self.collides(obj):
+            obj.notify_collision(o)
+
+    def collides(self, obj: GameObject) -> typing.Iterator[GameObject]:
+        """Check if an object collides with other objects on the board."""
         # Loop on all known objects
         for o in self._objects:
 
             # Detect a collision
             if obj != o and not o.background and obj in o:
                 yield o
-
-    def notify_object_moved(self, obj: "GameObject")-> None:
-        o=self.detect_collision(obj)
-        if not o is None:
-                obj.notify_collision(o)
-
-    def notify_object_eaten(self, obj: "GameObject")-> None:
-        self.remove_object(obj) # Remove the fruit eaten
-        self.create_fruit()
