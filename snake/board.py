@@ -13,14 +13,9 @@ class Board (Subject, Observer) : # subject car le Board reçoit aussi des infos
         super().__init__()
         self._screen= screen
         self._tile_size= tile_size
-        self._objects=[]
+        self._objects : list[GameObject]=[]
         self._nb_rows= nb_rows
         self._nb_cols= nb_cols
-
-    def draw(self) -> None:
-        for obj in self._objects:
-            for tile in obj.tiles:
-                tile.draw(self._screen, self._tile_size )
 
     def add_object(self,gameobject: GameObject):
         if gameobject not in self._objects:
@@ -38,12 +33,20 @@ class Board (Subject, Observer) : # subject car le Board reçoit aussi des infos
             fruit= Fruit.create_random(self._nb_rows, self._nb_cols)
         self.add_object(fruit)
 
+    def draw(self) -> None:
+        """Draw all objects on screen."""
+        # Loop on all objects
+        for obj in self._objects:
+            # Loop on all object's tiles
+            for tile in obj.tiles:
+                tile.draw(self._screen, self._tile_size)
+
     def detect_collision(self, obj: "GameObject")-> typing.Iterator[GameObject]:
         # Loop on all known objects
         for o in self._objects:
 
             # Detect a collision
-            if obj != o and not o.background() and obj in o:
+            if obj != o and not o.background and obj in o:
                 yield o
 
     def notify_object_moved(self, obj: "GameObject")-> None:

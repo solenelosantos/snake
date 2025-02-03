@@ -10,7 +10,7 @@ from snake.checkerboard import Checkerboard
 from snake.dir import Dir
 from snake.exceptions import GameOver
 from snake.fruit import Fruit
-from snake.snake_body import Snake
+from snake.snake import Snake
 from snake.lignecommande import lignecommande, DEFAULT_HEIGHT, DEFAULT_PIXEL, DEFAULT_WIDTH
 from snake.state import State
 from snake.scores import Scores
@@ -99,9 +99,24 @@ class Game:
         self._scores_file= scores_file
         self._gameover_on_exit = gameover_on_exit
 
+    def _reset_snake(self) -> None:
+        """Reset the snake."""
+        if self._snake is not None:
+            self._board.detach_obs(self._snake)
+            self._board.remove_object(self._snake)
+        self._snake = Snake.create_random(
+                nb_lines=self._height,
+                nb_cols=self._width,
+                length=SK_START_LENGTH,
+                head_color=self._snake_head_color,
+                body_color=self._snake_body_color,
+                gameover_on_exit=self._gameover_on_exit,
+        )
+        self._board.add_object(self._snake)
+        self._board.attach_obs(self._snake)
+
     def _init(self) -> None:
         """Initialize the game."""
-
         # Upload font
         with importlib.resources.path("snake", "DejaVuSansMono-Bold.ttf") as f:
             self._fontscore= pygame.font.Font(f,32)
@@ -127,7 +142,7 @@ class Game:
         self._checkerboard = Checkerboard(nb_lines = self._height,
                                           nb_cols = self._width)
         self._board.add_object(self._checkerboard)
-
+    
         # Create scores:
         
         self._scores= Scores.default(5)
@@ -135,29 +150,12 @@ class Game:
         
 
         # Create snake
-        self._resetsnake()
+        self._reset_snake()
         
 
         # Create fruit
         Fruit.color = self._fruit_color
         self._board.create_fruit()
-
-
-    def _resetsnake(self):
-        
-        if self._snake is not None:
-            self._board.remove_object_object(self._snake)
-            self._board.detach_obs(self._snake)
-        self._snake = Snake.create_random(
-                nb_lines = self._height,
-                nb_cols = self._width,
-                length = SK_START_LENGTH,
-                head_color = self._snake_head_color,
-                body_color = self._snake_body_color,
-                gameover_on_exit = self._gameover_on_exit,
-                )
-        self._board.add_object(self._snake)
-        self._board.attach_obs(self._snake)
 
     def _process_scores_event(self,event):
         if event.type== pygame.KEYDOWN and event.key== pygame.K_SPACE:
@@ -196,9 +194,9 @@ class Game:
 
             match self._state:
                 case State.SCORES :
-                    self._process_scores_events(event)
+                    self._process_scores_event(event)
                 case State.PLAY:
-                    self._process_play_events(event)
+                    self._process_play_event(event)
             # Closing window (Mouse click on cross icon or OS keyboard shortcut)
             if event.type == pygame.QUIT:
                 self._state= State.QUIT
@@ -249,7 +247,6 @@ class Game:
             except GameOver:
                 self._state= State.GAME_OVER
                 cpt= self._fps
-                self._resetsnake()
 
             # Draw
             self._board.draw()

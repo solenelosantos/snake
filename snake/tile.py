@@ -71,6 +71,6 @@ class Tile:
         msg = f"Wrong object type {type(object)}."
         raise ValueError(msg)
 
-    def draw(self,screen, tile_size) -> None:
-        rect=pygame.Rect(self._column*tile_size, self._row*tile_size, tile_size, tile_size)
+    def draw(self,screen, size) -> None:
+        rect = pygame.Rect(self.x * size, self.y * size, size, size)
         pygame.draw.rect(screen, self._color, rect)

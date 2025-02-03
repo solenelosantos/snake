@@ -54,21 +54,22 @@ class Snake(GameObject):
         return cls(tiles, direction = snake_dir,
                    gameover_on_exit = gameover_on_exit)
 
-
+    @property
+    def length(self) -> int:
+        """Snake length."""
+        return self._length
+    
     @property
     def dir(self) -> Dir:
         """Snake direction."""
-        return self._direction
+        return self._dir
 
     @dir.setter
     def dir(self, direction: Dir) -> None:
-        self._direction = direction
-
-    def __len__(self):
-        return len(self._tiles)
+        self._dir= direction
 
     def move(self) -> None:
-        new_head =self._tiles[0] + self._direction.value
+        new_head =self._tiles[0] + self._dir
         # check if the snake slithers on itself
         if new_head in self._tiles:
             raise GameOver
@@ -79,23 +80,16 @@ class Snake(GameObject):
         for obs in self.observers:
             obs.notify_object_moved(self)
         # shrink
-        if self._size < len(self._tiles):
-            self._tiles = self._tiles[:self._size]
+        if self._length < len(self._tiles):
+            self._tiles = self._tiles[:self._length]
 
     @property
-    def dir(self):
-        return self._direction
-
-    @dir.setter
-    def dir(self, new_direction) -> None:
-        self._direction = new_direction
-
-    @property
-    def tiles(self) -> None: 
-        iter(self._tiles)
+    def tiles(self) -> typing.Iterator[Tile]:
+        """Iterator on the tiles."""
+        return iter(self._tiles)
 
     def notify_collision (self, obj : GameObject)-> None:
         if isinstance(obj, Fruit):
-            self._size+=1 #we can generalize to add more fruits.
+            self._length+=1 #we can generalize to add more fruits.
             for obs in self._observers:
                 obs.notify_object_eaten(obj)

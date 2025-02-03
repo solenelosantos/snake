@@ -1,16 +1,17 @@
-import abc
 
 
+class Observer():
+    """Interface representing an observer for the Observer pattern."""
 
-class Observer(abc.ABC):
     def __init__(self) -> None:
+        """Object initialization."""
         super().__init__()
 
-    def notify_object_eaten(self, obj: "GameObject") -> None:
-        pass
-# C'est le snake qui appelle cette méthode
     def notify_object_moved(self, obj: "GameObject") -> None:
-        pass
-# C'est le Board qui appelle le fruit et le snake.
+        """Notify that an object has moved."""
+
     def notify_collision(self, obj: "GameObject") -> None:
-        pass
+        """Notify that an object collides with another."""
+
+    def notify_object_eaten(self, obj: "GameObject") -> None:
+        """Notify that an object is eaten."""
