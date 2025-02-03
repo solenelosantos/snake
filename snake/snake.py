@@ -18,6 +18,7 @@ class Snake(GameObject):
     def __init__(self, tiles: list[Tile], direction: Dir, *,
                  gameover_on_exit: bool = False) -> None:
         """Object initialization."""
+        super().__init__()
         self._tiles = tiles
         self._dir = direction
         self._length = len(tiles)
