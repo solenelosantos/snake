@@ -8,14 +8,32 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.12"
 pygame = "^2.6.1"
+pyyaml = "^6.0.2"
+schema = "^0.7.7"
 
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.3"
+mypy = "^1.13.0"
+ruff = "^0.8.2"
+coverage = "^7.6.9"
+ipykernel = "^6.29.5"
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-snake="snake.codesession2:snake"
+snake="snake.main:main"
+
+[tool.mypy]
+files = "."
+strict = true
+pretty = true
+show_error_code_links = true
+show_error_context = true
+show_column_numbers = true
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["D203", "D212"]
